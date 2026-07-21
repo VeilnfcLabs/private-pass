@@ -6,8 +6,21 @@
 //! When the `jwt` feature is enabled, tokens are JSON Web Tokens (JWT).
 //! Without it, tokens are HMAC-SHA256 signed payload strings.
 
+use std::sync::OnceLock;
+
 use crate::Error;
 use crate::tokens::{ExpiringClaim, TokenConfig};
+
+static CLAIM_BASE_URL: OnceLock<String> = OnceLock::new();
+
+fn claim_base_url() -> &str {
+    CLAIM_BASE_URL.get().map_or("https://claim.veilpass.app/c", |s| s.as_str())
+}
+
+/// Set the base URL for claim links. Called once at startup.
+pub fn set_claim_base_url(url: &str) -> Result<(), &str> {
+    CLAIM_BASE_URL.set(url.to_string())
+}
 
 /// A secure claim link.
 #[derive(Debug, Clone)]
@@ -31,18 +44,6 @@ pub struct ClaimMetadata {
     pub one_time: bool,
     /// When the claim was created.
     pub created_at: String,
-}
-
-/// Base URL for claim links. Configurable at compile time or runtime.
-static mut CLAIM_BASE_URL: &str = "https://claim.veilpass.app/c";
-
-/// Set the base URL for claim links.
-///
-/// # Safety
-///
-/// This function is not thread-safe and should only be called once at startup.
-pub unsafe fn set_claim_base_url(url: &str) {
-    CLAIM_BASE_URL = url;
 }
 
 impl ClaimLink {
@@ -70,7 +71,7 @@ impl ClaimLink {
             algorithm,
         )?;
 
-        let url = format!("{}{}", unsafe { CLAIM_BASE_URL }, &claim.token);
+        let url = format!("{}{}", claim_base_url(), &claim.token);
 
         Ok(Self {
             url,
@@ -99,7 +100,7 @@ impl ClaimLink {
     ) -> crate::Result<ClaimMetadata> {
         // Extract the token from the URL
         let token = url
-            .strip_prefix(unsafe { CLAIM_BASE_URL })
+            .strip_prefix(claim_base_url())
             .ok_or_else(|| Error::LinkVerification("invalid claim URL format".into()))?;
 
         if token.is_empty() {
@@ -143,16 +144,16 @@ impl ClaimLink {
             .to_string();
 
         let expires_at = chrono::DateTime::from_timestamp(claims.exp as i64, 0)
-            .unwrap_or_default()
-            .to_rfc3339();
+            .map(|dt| dt.to_rfc3339())
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
         Ok(ClaimMetadata {
             resource,
             expires_at,
             one_time: sub_json["one_time"].as_bool().unwrap_or(false),
             created_at: chrono::DateTime::from_timestamp(claims.iat as i64, 0)
-                .unwrap_or_default()
-                .to_rfc3339(),
+                .map(|dt| dt.to_rfc3339())
+                .unwrap_or_else(|| chrono::Utc::now().to_rfc3339()),
         })
     }
 

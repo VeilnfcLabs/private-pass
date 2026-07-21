@@ -51,7 +51,10 @@ _rate_limiter = TokenBucket(capacity=settings.rate_limit, refill_rate=settings.r
 
 async def rate_limit_dependency(request: Request) -> None:
     """Rate limiting dependency — uses client IP as the key."""
-    client_ip = request.client.host if request.client else "unknown"
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    client_ip = forwarded.split(",")[0].strip() if forwarded else (
+        request.client.host if request.client else "unknown"
+    )
     if not _rate_limiter.consume(client_ip):
         logger.warning("rate_limit_exceeded", ip=client_ip, path=str(request.url))
         raise RateLimitedError()

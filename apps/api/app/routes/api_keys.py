@@ -1,5 +1,7 @@
 """API key management endpoints for VeilPass API."""
 
+import hashlib
+import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -37,14 +39,14 @@ async def create_api_key(
         raise InvalidInputError("API key name cannot be empty")
 
     key_id = generate_id()
-    raw_key = f"vp_{key_id}{generate_id()}"
+    raw_key = f"vp_{secrets.token_urlsafe(24)}"
     now = format_timestamp(utcnow())
 
     _api_keys_store[key_id] = {
         "id": key_id,
         "name": body.name,
         "prefix": raw_key[:12],
-        "key_hash": raw_key,  # In production, store bcrypt hash
+        "key_hash": hashlib.sha256(raw_key.encode()).hexdigest(),
         "created_at": now,
         "last_used_at": None,
         "permissions": body.permissions,

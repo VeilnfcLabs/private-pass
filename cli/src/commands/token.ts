@@ -11,7 +11,7 @@ function base64UrlDecode(str: string): string {
   return Buffer.from(str, 'base64url').toString('utf-8');
 }
 
-function createToken(sub: string, aud: string, iss: string, ttl: number, extraClaims: Record<string, unknown>): string {
+function createToken(sub: string, aud: string, iss: string, ttl: number, extraClaims: Record<string, unknown>, secret?: string): string {
   const header = { alg: 'HS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
   const payload: Record<string, unknown> = {
@@ -25,10 +25,23 @@ function createToken(sub: string, aud: string, iss: string, ttl: number, extraCl
   };
   const headerEnc = base64UrlEncode(JSON.stringify(header));
   const payloadEnc = base64UrlEncode(JSON.stringify(payload));
-  const signature = crypto.createHmac('sha256', 'veilpass-dev-secret')
+  const signingKey = secret || process.env.VEILPASS_SIGNING_KEY || crypto.randomBytes(32).toString('hex');
+  const signature = crypto.createHmac('sha256', signingKey)
     .update(`${headerEnc}.${payloadEnc}`)
     .digest('base64url');
   return `${headerEnc}.${payloadEnc}.${signature}`;
+}
+
+function parseTTL(input: string): number {
+  const match = input.match(/^(\d+)(s|m|h|d)?$/);
+  if (!match) return parseInt(input, 10);
+  const val = parseInt(match[1], 10);
+  switch (match[2]) {
+    case 'm': return val * 60;
+    case 'h': return val * 3600;
+    case 'd': return val * 86400;
+    default: return val;
+  }
 }
 
 export const tokenCommand = new Command('token')
@@ -40,12 +53,15 @@ tokenCommand
   .option('--sub <subject>', 'Token subject', 'user')
   .option('--aud <audience>', 'Token audience', 'veilpass-api')
   .option('--iss <issuer>', 'Token issuer', 'veilpass-cli')
-  .option('--ttl <seconds>', 'Time-to-live in seconds', '3600')
+  .option('--ttl <duration>', 'Time-to-live (e.g. 3600, 1h, 7d)', '1h')
   .option('--claims <json>', 'Additional claims as JSON string')
   .action((options) => {
     try {
-      const ttl = parseInt(options.ttl, 10);
+      const ttl = parseTTL(options.ttl);
       const extraClaims = options.claims ? JSON.parse(options.claims) : {};
+      if (typeof extraClaims !== 'object' || extraClaims === null) {
+        throw new Error('Claims must be a JSON object');
+      }
       const token = createToken(options.sub, options.aud, options.iss, ttl, extraClaims);
       console.log(chalk.green('Token created:'));
       formatOutput(token);
@@ -68,7 +84,7 @@ tokenCommand
     try {
       const parts = token.split('.');
       if (parts.length !== 3) {
-        console.error(chalk.red('Invalid token format'));
+        console.error(chalk.red('Invalid token format: expected 3-part JWT'));
         process.exit(1);
       }
       const header = JSON.parse(base64UrlDecode(parts[0]));

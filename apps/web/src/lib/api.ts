@@ -1,66 +1,186 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const DEFAULT_TIMEOUT = 15000;
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  code: string;
+  requestId: string;
+
+  constructor(message: string, status: number, code = "UNKNOWN", requestId = "") {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
+    this.requestId = requestId;
   }
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}/api/v1${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new ApiError(
-      err.error?.message || `Request failed: ${res.status}`,
-      res.status
-    );
+export class NetworkError extends Error {
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : "Network request failed");
+    this.name = "NetworkError";
+    this.cause = cause;
   }
-  return res.json();
+}
+
+export class TimeoutError extends Error {
+  constructor(ms: number) {
+    super(`Request timed out after ${ms}ms`);
+    this.name = "TimeoutError";
+  }
+}
+
+async function request<T>(path: string, options?: RequestInit & { timeout?: number }): Promise<T> {
+  const controller = new AbortController();
+  const timeout = options?.timeout ?? DEFAULT_TIMEOUT;
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1${path}`, {
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      signal: controller.signal,
+      ...options,
+    });
+
+    if (!res.ok) {
+      let errBody: Record<string, unknown> = {};
+      try {
+        errBody = await res.json();
+      } catch {
+        errBody = {};
+      }
+      const errorData = errBody.error as Record<string, unknown> | undefined;
+      throw new ApiError(
+        errorData?.message as string || `Request failed: ${res.status}`,
+        res.status,
+        errorData?.code as string || "UNKNOWN",
+        (errorData?.request_id as string) || res.headers.get("X-Request-ID") || "",
+      );
+    }
+
+    return res.json() as Promise<T>;
+  } catch (err: unknown) {
+    if (err instanceof ApiError) throw err;
+    if ((err as Error)?.name === "AbortError") throw new TimeoutError(timeout);
+    if (err instanceof TypeError) throw new NetworkError(err);
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+interface QRResponse {
+  success: boolean;
+  format: string;
+  encoding: string;
+  data: string;
+  content_type: string;
+  size: number;
+  expires_at: string | null;
+  request_id: string;
+}
+
+interface NFCResponse {
+  success: boolean;
+  id: string;
+  type: string;
+  version: string;
+  issuer: string;
+  timestamp: string;
+  nonce: string;
+  signature: string;
+  payload: string;
+  exports: Record<string, string>;
+  request_id: string;
+}
+
+interface SignedLinkResponse {
+  success: boolean;
+  url: string;
+  token: string;
+  expires_at: string;
+  signature: string;
+  nonce: string;
+  request_id: string;
+}
+
+interface SignedURLResponse {
+  success: boolean;
+  signed_url: string;
+  expires: string;
+  signature: string;
+  key_id: string;
+  request_id: string;
+}
+
+interface TokenResponse {
+  success: boolean;
+  token: string;
+  decoded: {
+    header: Record<string, unknown>;
+    payload: Record<string, unknown>;
+  };
+  signature: string;
+  expires_at: string;
+  request_id: string;
+}
+
+interface VerifyResponse {
+  success: boolean;
+  valid: boolean;
+  expired: boolean;
+  issuer: string;
+  signature_valid: boolean;
+  claims: Record<string, unknown>;
+  request_id: string;
 }
 
 export const api = {
-  qr: (data: Record<string, unknown>) =>
-    request<{ data: string; format: string }>("/qr", {
+  async qr(data: Record<string, unknown>, timeout?: number): Promise<QRResponse> {
+    return request<QRResponse>("/qr", {
       method: "POST",
       body: JSON.stringify(data),
-    }),
-  nfc: (data: Record<string, unknown>) =>
-    request<{ payload: Record<string, unknown>; hex: string; base64: string; ndef: string }>("/nfc", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  createSignedLink: (data: Record<string, unknown>) =>
-    request<{ url: string; token: string; expiresAt: string }>("/signed-link", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  createSignedUrl: (data: Record<string, unknown>) =>
-    request<{ url: string; components: Record<string, string> }>("/signed-url", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  createToken: (data: Record<string, unknown>) =>
-    request<{ token: string; decoded: { header: Record<string, unknown>; payload: Record<string, unknown>; signature: string } }>("/token", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  verify: (data: Record<string, unknown>) =>
-    request<{
-      valid: boolean;
-      expired: boolean;
-      issuer?: string;
-      claims?: Record<string, unknown>;
-      signatureValid: boolean;
-    }>("/verify", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-};
+      timeout,
+    });
+  },
 
-export { ApiError };
+  async nfc(data: Record<string, unknown>, timeout?: number): Promise<NFCResponse> {
+    return request<NFCResponse>("/nfc", {
+      method: "POST",
+      body: JSON.stringify(data),
+      timeout,
+    });
+  },
+
+  async createSignedLink(data: Record<string, unknown>, timeout?: number): Promise<SignedLinkResponse> {
+    return request<SignedLinkResponse>("/signed-link", {
+      method: "POST",
+      body: JSON.stringify(data),
+      timeout,
+    });
+  },
+
+  async createSignedUrl(data: Record<string, unknown>, timeout?: number): Promise<SignedURLResponse> {
+    return request<SignedURLResponse>("/signed-url", {
+      method: "POST",
+      body: JSON.stringify(data),
+      timeout,
+    });
+  },
+
+  async createToken(data: Record<string, unknown>, timeout?: number): Promise<TokenResponse> {
+    return request<TokenResponse>("/token", {
+      method: "POST",
+      body: JSON.stringify(data),
+      timeout,
+    });
+  },
+
+  async verify(data: Record<string, unknown>, timeout?: number): Promise<VerifyResponse> {
+    return request<VerifyResponse>("/verify", {
+      method: "POST",
+      body: JSON.stringify(data),
+      timeout,
+    });
+  },
+};

@@ -11,7 +11,7 @@ from app.crypto import create_jwt, ed25519_sign, hmac_sign
 from app.deps import rate_limit_dependency, request_id_dependency
 from app.errors import InvalidInputError
 from app.models.schemas import TokenRequest, TokenResponse
-from app.utils import format_timestamp, utcnow, validate_ttl
+from app.utils import _pad_b64, format_timestamp, utcnow, validate_ttl
 
 logger = get_logger(__name__)
 
@@ -56,9 +56,8 @@ async def create_token(
 
     # Decode header and payload for inspection
     def _b64_decode(s: str) -> dict:
-        padded = s + "=" * (4 - len(s) % 4) if len(s) % 4 else s
         try:
-            return json.loads(base64.urlsafe_b64decode(padded).decode("utf-8"))
+            return json.loads(base64.urlsafe_b64decode(_pad_b64(s)).decode("utf-8"))
         except Exception:
             return {}
 

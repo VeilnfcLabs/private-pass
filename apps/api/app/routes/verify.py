@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, Query
 from structlog import get_logger
 
 from app.crypto import decode_jwt, ed25519_verify, hmac_verify, is_expired, validate_timestamp
+from app.utils import _pad_b64
 from app.deps import request_id_dependency
 from app.errors import InvalidInputError
 from app.models.schemas import VerifyRequest, VerifyResponse
@@ -59,8 +60,7 @@ def _verify_signed_link(value: str) -> dict:
     payload_b64, sig_b64 = parts
     try:
         # Decode payload
-        padded_payload = payload_b64 + "=" * (4 - len(payload_b64) % 4) if len(payload_b64) % 4 else payload_b64
-        payload_bytes = base64.urlsafe_b64decode(padded_payload)
+        payload_bytes = base64.urlsafe_b64decode(_pad_b64(payload_b64))
         payload = json.loads(payload_bytes.decode("utf-8"))
     except Exception:
         return {
@@ -71,13 +71,16 @@ def _verify_signed_link(value: str) -> dict:
             "claims": {},
         }
 
-    # Verify signature
+    # Verify signature — try Ed25519 first, fall back to HMAC
+    signature_valid = False
     try:
-        sig_bytes = base64.urlsafe_b64decode(sig_b64 + "=" * (4 - len(sig_b64) % 4))
+        sig_bytes = base64.urlsafe_b64decode(_pad_b64(sig_b64))
         signature_valid = ed25519_verify(payload_bytes, sig_bytes)
     except Exception:
-        # Fallback to HMAC verification
-        signature_valid = hmac_verify(payload_bytes.decode("utf-8"), sig_b64)
+        try:
+            signature_valid = hmac_verify(payload_bytes.decode("utf-8"), sig_b64)
+        except Exception:
+            signature_valid = False
 
     # Check expiration
     expired = False
@@ -138,11 +141,15 @@ def _verify_signed_url(value: str) -> dict:
         separators=(",", ":"),
     )
 
+    signature_valid = False
     try:
-        sig_bytes = base64.urlsafe_b64decode(signature + "=" * (4 - len(signature) % 4))
+        sig_bytes = base64.urlsafe_b64decode(_pad_b64(signature))
         signature_valid = ed25519_verify(sig_payload.encode("utf-8"), sig_bytes)
     except Exception:
-        signature_valid = hmac_verify(sig_payload, signature)
+        try:
+            signature_valid = hmac_verify(sig_payload, signature)
+        except Exception:
+            signature_valid = False
 
     return {
         "valid": signature_valid and not expired,

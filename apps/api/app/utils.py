@@ -47,3 +47,8 @@ def utcnow() -> datetime:
 def format_timestamp(dt: datetime) -> str:
     """Format a datetime as ISO 8601 UTC string."""
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _pad_b64(s: str) -> str:
+    """Add correct base64 padding."""
+    return s + "=" * ((4 - len(s) % 4) % 4)

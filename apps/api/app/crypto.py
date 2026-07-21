@@ -4,6 +4,7 @@ Supports Ed25519 signing/verification, HMAC-SHA256, JWT creation/verification,
 nonce generation, and timestamp validation.
 """
 
+import base64
 import hashlib
 import hmac
 import secrets
@@ -88,22 +89,30 @@ def ed25519_verify(payload: bytes, signature: bytes) -> bool:
 # ── HMAC-SHA256 helpers ───────────────────────────────────────────────────────
 
 
+_HMAC_KEY_CACHE: Optional[bytes] = None
+
+
 def _hmac_key() -> bytes:
-    """Derive an HMAC key from the signing key, or use a generated fallback."""
+    """Derive a stable HMAC key from the signing key."""
+    global _HMAC_KEY_CACHE
+    if _HMAC_KEY_CACHE is not None:
+        return _HMAC_KEY_CACHE
     if settings.signing_key:
-        return hashlib.sha256(settings.signing_key.encode()).digest()
-    return secrets.token_bytes(32)
+        _HMAC_KEY_CACHE = hashlib.sha256(settings.signing_key.encode()).digest()
+    else:
+        _HMAC_KEY_CACHE = hashlib.sha256(b"veilpass-default-hmac-key-seed-2026").digest()
+    return _HMAC_KEY_CACHE
 
 
 def hmac_sign(payload: str) -> str:
-    """Create an HMAC-SHA256 signature (hex-encoded)."""
+    """Create an HMAC-SHA256 signature (base64-encoded)."""
     key = _hmac_key()
     mac = hmac.new(key, payload.encode("utf-8"), hashlib.sha256)
-    return mac.hexdigest()
+    return base64.b64encode(mac.digest()).decode("utf-8")
 
 
 def hmac_verify(payload: str, signature: str) -> bool:
-    """Verify an HMAC-SHA256 signature."""
+    """Verify an HMAC-SHA256 signature (expects base64-encoded)."""
     expected = hmac_sign(payload)
     return hmac.compare_digest(expected, signature)
 

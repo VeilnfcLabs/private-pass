@@ -51,6 +51,7 @@ async def create_signed_link(
         signature = ed25519_sign(payload_bytes)
         sig_base64 = base64.b64encode(signature).decode("utf-8")
     except ValueError:
+        logger.warning("ed25519_not_configured_falling_back_to_hmac")
         sig_base64 = hmac_sign(payload_bytes.decode("utf-8"))
 
     # Create the token (base64-encoded payload + signature)
