@@ -18,7 +18,7 @@
     "qrcode": "^1.5.4",
     "axios": "^1.7.0",
     "cli-table3": "^0.6.5",
-    "conf": "^13.0.0",
+    "conf": "^15.1.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
