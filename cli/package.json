@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "typescript": "^5.7.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^26.1.1",
     "@types/qrcode": "^1.5.5",
     "tsx": "^4.19.0"
   }
