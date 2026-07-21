@@ -3,7 +3,7 @@ uvicorn[standard]==0.34.0
 pydantic==2.10.3
 pydantic-settings==2.7.0
 pyjwt==2.10.1
-cryptography==44.0.0
+cryptography==49.0.0
 qrcode[pil]==7.4.2
 Pillow==11.1.0
 python-multipart==0.0.18
