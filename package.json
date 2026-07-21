@@ -1,0 +1,47 @@
+{
+  "name": "veilpass",
+  "private": true,
+  "version": "0.1.0",
+  "description": "VeilPass — Privacy QR & NFC Generator",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "check:all": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-fs": "^2",
+    "@tauri-apps/plugin-shell": "^2",
+    "react": "^19.2",
+    "react-dom": "^19.2",
+    "react-router-dom": "^8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5",
+    "@tailwindcss/vite": "^4",
+    "@testing-library/react": "^16",
+    "@testing-library/jest-dom": "^6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "autoprefixer": "^10",
+    "postcss": "^8",
+    "tailwindcss": "^4",
+    "typescript": "~6.0",
+    "vite": "^8",
+    "vitest": "^4",
+    "zustand": "^5"
+  }
+}

@@ -1,0 +1,36 @@
+[package]
+name = "veilpass-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "VeilPass CLI — Privacy QR + NFC generator"
+
+[[bin]]
+name = "vp"
+path = "src/main.rs"
+
+[dependencies]
+veilpass-core = { path = "../veilpass-core", features = ["full"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+clap_complete = "4"
+
+# Error handling
+anyhow = "1"
+thiserror.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# IO
+base64.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"

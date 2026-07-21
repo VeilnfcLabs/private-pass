@@ -1,0 +1,71 @@
+# ── Stage 1: Dependencies ──────────────────────────────────────────────────────
+FROM node:22-alpine AS deps
+
+WORKDIR /app
+
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN \
+  if [ -f pnpm-lock.yaml ]; then \
+    corepack enable && pnpm install --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then \
+    npm ci --only=production; \
+  elif [ -f yarn.lock ]; then \
+    yarn install --frozen-lockfile --production; \
+  else \
+    npm install; \
+  fi
+
+# ── Stage 2: Build ─────────────────────────────────────────────────────────────
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN \
+  if [ -f pnpm-lock.yaml ]; then \
+    corepack enable && pnpm install --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then \
+    npm ci; \
+  elif [ -f yarn.lock ]; then \
+    yarn install --frozen-lockfile; \
+  else \
+    npm install; \
+  fi
+
+COPY . .
+
+# Build the documentation site
+# Supports Next.js, Docusaurus, or static site generators
+RUN npm run build
+
+# ── Stage 3: Runtime ──────────────────────────────────────────────────────────
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 docsite
+
+# Copy standalone output if Next.js, or static build otherwise
+COPY --from=builder /app/.next/standalone ./ 2>/dev/null || true
+COPY --from=builder /app/.next/static ./.next/static 2>/dev/null || true
+COPY --from=builder /app/build ./build 2>/dev/null || true
+COPY --from=builder /app/public ./public
+
+RUN chown -R docsite:nodejs /app
+
+USER docsite
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD node -e "fetch('http://localhost:3000').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" || exit 0
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Try server.js (Next.js standalone) or fallback to a static server
+CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; else npx serve build -l 3000; fi"]

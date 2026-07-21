@@ -1,0 +1,132 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VeilPass Git Attributes
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Normalize line endings to LF for all text files
+* text=auto eol=lf
+
+# ── Source files ────────────────────────────────────────────────────────────
+
+# Rust
+*.rs           text diff=rust
+*.toml         text
+
+# Python
+*.py           text diff=python
+*.pyi          text diff=python
+*.pyx          text diff=python
+requirements.txt text
+
+# JavaScript / TypeScript
+*.js           text diff=javascript
+*.jsx          text diff=javascript
+*.ts           text diff=typescript
+*.tsx          text diff=typescript
+*.mjs          text
+*.cjs          text
+*.vue          text
+
+# CSS / Styles
+*.css          text diff=css
+*.scss         text diff=css
+*.sass         text diff=css
+*.less         text diff=css
+
+# HTML / Templates
+*.html         text diff=html
+*.htm          text diff=html
+*.hbs          text
+*.mustache     text
+
+# Markdown / Docs
+*.md           text diff=markdown
+*.mdx          text
+*.adoc         text
+*.rst          text
+
+# JSON / YAML / Config
+*.json         text
+*.yaml         text
+*.yml          text
+*.toml         text
+*.ini          text
+*.cfg          text
+*.conf         text
+.editorconfig  text
+.gitattributes text
+.gitignore     text
+
+# Shell scripts
+*.sh           text eol=lf
+*.bash         text eol=lf
+*.zsh          text eol=lf
+*.ps1          text eol=crlf
+*.psm1         text eol=crlf
+
+# Docker
+Dockerfile*    text
+docker-compose*.yml text
+.dockerignore  text
+
+# GitHub Actions / CI
+*.yml          text
+*.yaml         text
+
+# ── Binary files ────────────────────────────────────────────────────────────
+
+# Images
+*.png          binary
+*.jpg          binary
+*.jpeg         binary
+*.gif          binary
+*.ico          binary
+*.svg          text diff=xml
+*.webp         binary
+
+# Fonts
+*.woff         binary
+*.woff2        binary
+*.ttf          binary
+*.eot          binary
+
+# Archives
+*.zip          binary
+*.tar.gz       binary
+*.gz           binary
+*.bz2          binary
+*.7z           binary
+*.rar          binary
+
+# Documents
+# Generated files - use LFS for large binaries
+
+# ── Generated / Build output ─────────────────────────────────────────────────
+
+# Next.js output
+.next/         linguist-generated=true
+
+# Rust output
+target/        linguist-generated=true
+
+# Python
+__pycache__/   linguist-generated=true
+*.pyc          binary
+*.pyo          binary
+
+# Node.js
+node_modules/  linguist-generated=true
+
+# Vite / Build
+dist/          linguist-generated=true
+build/         linguist-generated=true
+
+# ── Linguist overrides ──────────────────────────────────────────────────────
+
+# Ensure these are detected as vendored/code appropriately
+*.min.js       linguist-vendored=true
+*.min.css      linguist-vendored=true
+
+# ── LFS (if using Git LFS) ──────────────────────────────────────────────────
+# Uncomment and configure if large files are tracked:
+# *.psd          filter=lfs diff=lfs merge=lfs -text
+# *.ai           filter=lfs diff=lfs merge=lfs -text

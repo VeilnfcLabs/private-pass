@@ -1,0 +1,9 @@
+name: veilpass_examples
+description: VeilPass API Flutter/Dart example
+version: 1.0.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  http: ^1.2.0

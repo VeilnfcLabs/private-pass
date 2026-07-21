@@ -1,0 +1,71 @@
+[package]
+name = "veilpass-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Core library for VeilPass — QR + NFC privacy generator with cryptographic signing"
+
+[package.metadata.docs.rs]
+features = ["full"]
+
+[features]
+default = ["full"]
+full = ["qr", "nfc", "jwt"]
+qr = ["dep:fast_qr"]
+nfc = ["dep:ndef-rs"]
+jwt = ["dep:jsonwebtoken"]
+wasm = ["getrandom/js"]
+
+[dependencies]
+# Workspace deps
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+base64.workspace = true
+chrono.workspace = true
+zeroize.workspace = true
+getrandom.workspace = true
+rand.workspace = true
+
+# URL parsing (for signed_urls)
+url = "2"
+
+# Hex encoding (used in key_id functions)
+hex = "0.4"
+
+# Crypto
+ed25519-dalek = { version = "2", features = ["pkcs8", "pem"] }
+sha2 = "0.10"
+hmac = "0.12"
+hkdf = "0.12"
+
+# QR (optional)
+fast_qr = { version = "0.13", optional = true }
+
+# NFC (optional)
+ndef-rs = { version = "0.2", optional = true }
+
+# JWT (optional)
+jsonwebtoken = { version = "11", optional = true, default-features = false, features = ["aws_lc_rs"] }
+
+# WASM
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { workspace = true, features = ["js"] }
+
+[dev-dependencies]
+hex-literal = "0.4"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "signing"
+harness = false
+
+[[bench]]
+name = "qr_generation"
+harness = false
+required-features = ["qr"]

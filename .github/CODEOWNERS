@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VeilPass CODEOWNERS
+# Each line is a file pattern followed by one or more owners.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Global owners (review everything by default)
+* @veillabs/core
+
+# ── Core Rust Library ───────────────────────────────────────────────────────
+crates/veilpass-core/       @veillabs/core
+crates/veilpass-core/src/crypto/  @veillabs/security
+crates/veilpass-core/src/signing/ @veillabs/security
+
+# ── Rust CLI ────────────────────────────────────────────────────────────────
+crates/veilpass-cli/        @veillabs/core
+
+# ── Tauri Desktop App ───────────────────────────────────────────────────────
+crates/veilpass-tauri/      @veillabs/core
+
+# ── npm CLI ─────────────────────────────────────────────────────────────────
+cli/                        @veillabs/core
+
+# ── Python API ──────────────────────────────────────────────────────────────
+apps/api/                   @veillabs/backend
+
+# ── Next.js Frontend ────────────────────────────────────────────────────────
+apps/web/                   @veillabs/frontend
+
+# ── Documentation ───────────────────────────────────────────────────────────
+apps/docs/                  @veillabs/docs
+*.md                        @veillabs/docs
+.github/                    @veillabs/docs
+
+# ── CI/CD ───────────────────────────────────────────────────────────────────
+.github/workflows/          @veillabs/core @veillabs/infra
+.github/dependabot.yml      @veillabs/core @veillabs/infra
+Dockerfile*                 @veillabs/infra
+docker/                     @veillabs/infra
+
+# ── Security-sensitive files ────────────────────────────────────────────────
+SECURITY.md                 @veillabs/security
+.github/SECURITY.md         @veillabs/security
+crates/veilpass-core/src/crypto/ @veillabs/security
+crates/veilpass-core/src/signing/ @veillabs/security
+
+# ── Configuration ───────────────────────────────────────────────────────────
+rust-toolchain.toml         @veillabs/core
+package.json                @veillabs/core
+Cargo.toml                  @veillabs/core
+tsconfig.json               @veillabs/frontend
+vite.config.ts              @veillabs/frontend
+biome.json                  @veillabs/frontend

@@ -1,0 +1,42 @@
+[package]
+name = "veilpass-tauri"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "VeilPass Desktop App — Tauri backend"
+
+[lib]
+name = "veilpass_tauri_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+veilpass-core = { path = "../veilpass-core", features = ["full"] }
+
+# Tauri
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+
+# IPC type safety
+tauri-specta = "=2.0.0-rc.25"
+specta = "=2.0.0-rc.25"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Error handling
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
