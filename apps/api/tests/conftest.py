@@ -23,6 +23,44 @@ def reset_rate_limiter():
     yield
 
 
+@pytest.fixture(autouse=True)
+def reset_redirect_rate_limiter():
+    """Reset the redirect endpoint rate limiter before each test."""
+    from app.routes.dynamic_qr import _redirect_rate_limiter_buckets
+
+    _redirect_rate_limiter_buckets.clear()
+    yield
+
+
+@pytest.fixture(autouse=True)
+def reset_dynamic_qr_store():
+    """Reset the in-memory dynamic QR store before each test."""
+    from app.routes.dynamic_qr import _dynamic_qr_store, _qr_scan_events
+
+    _dynamic_qr_store.clear()
+    _qr_scan_events.clear()
+    yield
+
+
+@pytest.fixture(autouse=True)
+def reset_batch_store():
+    """Reset the batch dynamic QR store before each test."""
+    from app.routes.batch import _dynamic_qr_store, _batch_jobs
+
+    _dynamic_qr_store.clear()
+    _batch_jobs.clear()
+    yield
+
+
+@pytest.fixture(autouse=True)
+def reset_template_store():
+    """Reset the in-memory template store before each test."""
+    from app.routes.templates import _template_store
+
+    _template_store.clear()
+    yield
+
+
 @pytest.fixture(scope="session")
 def api_key() -> str:
     """Create a test API key."""

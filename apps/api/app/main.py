@@ -10,7 +10,10 @@ from structlog import get_logger
 
 from app.config import settings
 from app.errors import VeilPassError, veilpass_exception_handler, unhandled_exception_handler
-from app.routes import health, qr, nfc, links, urls, tokens, verify, api_keys
+from app.routes import health, qr, nfc, links, urls, tokens, verify, api_keys, dynamic_qr, batch, templates, webhooks, keys, audit, zkp, ephemeral, registry
+from app.routes.encrypted import router as encrypted_router
+from app.routes.pqc import router as pqc_router
+from app.routes.revoke import revoke_router, status_router
 
 logger = get_logger(__name__)
 
@@ -89,3 +92,17 @@ app.include_router(urls.router)
 app.include_router(tokens.router)
 app.include_router(verify.router)
 app.include_router(api_keys.router)
+app.include_router(dynamic_qr.router)
+app.include_router(dynamic_qr._redirect_router)
+app.include_router(batch.router)
+app.include_router(templates.router)
+app.include_router(webhooks.router)
+app.include_router(keys.router)
+app.include_router(audit.router)
+app.include_router(revoke_router)
+app.include_router(status_router)
+app.include_router(zkp.router)
+app.include_router(ephemeral.router)
+app.include_router(registry.router)
+app.include_router(encrypted_router)
+app.include_router(pqc_router)
