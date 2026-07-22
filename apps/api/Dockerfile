@@ -1,5 +1,5 @@
 # ── Stage 1: Dependencies ─────────────────────────────────────────────────────
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 WORKDIR /build
 
@@ -11,7 +11,7 @@ COPY requirements.txt .
 RUN pip install --user --no-warn-script-location -r requirements.txt
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 WORKDIR /app
 
