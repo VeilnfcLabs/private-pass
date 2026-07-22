@@ -1,29 +1,56 @@
 """Verification endpoint for VeilPass API.
 
-Supports verification of tokens, signed-links, and signed-urls.
+Supports verification of tokens, signed-links, signed-urls,
+and SD-JWT (Selective Disclosure JWT) presentations.
 """
 
 import base64
+import hashlib
 import json
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from structlog import get_logger
 
 from app.crypto import decode_jwt, ed25519_verify, hmac_verify, is_expired, validate_timestamp
-from app.utils import _pad_b64
 from app.deps import request_id_dependency
 from app.errors import InvalidInputError
-from app.models.schemas import VerifyRequest, VerifyResponse
+from app.models.schemas import (
+    SDJWTVeirfyResponse,
+    VerifyRequest,
+    VerifyResponse,
+)
+from app.routes.revoke import is_revoked
+from app.sdjwt import verify_sd_jwt
+from app.utils import _pad_b64
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/v1/verify", tags=["Verification"])
 
 
+# ── Token identifier helpers ─────────────────────────────────────────
+
+
+def _token_fingerprint(token: str) -> str:
+    """Derive a stable identifier from a JWT for revocation lookups."""
+    return hashlib.sha256(token.encode()).hexdigest()[:16]
+
+
+def _check_revocation(token: str) -> None:
+    """Raise InvalidInputError if the token has been revoked."""
+    if is_revoked(_token_fingerprint(token)):
+        raise InvalidInputError("Token has been revoked")
+
+
+# ── Internal verifiers ───────────────────────────────────────────────
+
+
 def _verify_token(value: str) -> dict:
     """Verify a JWT token and return claims."""
+    _check_revocation(value)
     try:
         # Try Ed25519/EdDSA JWT verification
         decoded = decode_jwt(value)
@@ -160,6 +187,9 @@ def _verify_signed_url(value: str) -> dict:
     }
 
 
+# ── Standard verification endpoints ──────────────────────────────────
+
+
 @router.post("", response_model=VerifyResponse, summary="Verify a token, signed-link, or signed-url")
 async def verify_post(
     body: VerifyRequest,
@@ -196,3 +226,64 @@ async def verify_get(
         body=VerifyRequest(type=type, value=value),
         request_id=request_id,
     )
+
+
+# ── SD-JWT Verification ──────────────────────────────────────────────
+
+
+class SDJWTVeirfyRequest(BaseModel):
+    """Request model for SD-JWT verification."""
+
+    token: str
+    disclosures: list[str]
+
+
+@router.post(
+    "/sd-jwt",
+    response_model=SDJWTVeirfyResponse,
+    summary="Verify an SD-JWT presentation",
+)
+async def verify_sd_jwt_endpoint(
+    body: SDJWTVeirfyRequest,
+    request_id: str = Depends(request_id_dependency),
+):
+    """Verify an SD-JWT and return the disclosed claims.
+
+    Provide the SD-JWT token and the disclosures the holder is presenting.
+    The server verifies:
+      1. The JWT signature (Ed25519/EdDSA)
+      2. Token expiration
+      3. Revocation status
+      4. Each disclosure digest matches the embedded digest in the JWT
+
+    On success, returns the verified disclosed claims.
+    """
+    if not body.token.strip():
+        raise InvalidInputError("Token cannot be empty")
+
+    if not body.disclosures:
+        raise InvalidInputError("Disclosures list cannot be empty")
+
+    # Check revocation
+    _check_revocation(body.token)
+
+    try:
+        disclosed_claims = verify_sd_jwt(
+            token=body.token,
+            disclosures=body.disclosures,
+        )
+        return SDJWTVeirfyResponse(
+            valid=True,
+            expired=False,
+            disclosed_claims=disclosed_claims,
+            request_id=request_id,
+        )
+    except Exception as exc:
+        err_str = str(exc).lower()
+        is_expired = "expired" in err_str
+        return SDJWTVeirfyResponse(
+            valid=False,
+            expired=is_expired,
+            disclosed_claims={},
+            request_id=request_id,
+        )

@@ -144,21 +144,56 @@ def create_jwt(
     return jwt.encode(token_payload, key, algorithm="EdDSA")
 
 
-def decode_jwt(token: str, audience: str = "") -> dict[str, Any]:
-    """Decode and verify a JWT using the configured Ed25519 public key."""
+def decode_jwt(
+    token: str,
+    audience: str = "",
+    verify_aud: bool = False,
+) -> dict[str, Any]:
+    """Decode and verify a JWT using the configured Ed25519 public key.
+
+    Args:
+        token: The JWT string to decode and verify.
+        audience: Expected audience value.  If empty and ``verify_aud`` is
+            ``False`` the ``aud`` claim is not checked.
+        verify_aud: When ``True`` the ``aud`` claim is always validated
+            (the *audience* argument must be non-empty).  When ``False``
+            and *audience* is empty, audience verification is skipped
+            even if the token contains an ``aud`` claim.
+
+    Returns:
+        Decoded payload as a dict.
+    """
     key = _load_verification_key()
     if key is None:
         raise ValueError("Ed25519 verification key is not configured for JWT verification")
 
-    options = {"verify_exp": True}
+    options: dict[str, Any] = {"verify_exp": True}
+
     if audience:
         options["verify_aud"] = True
+        # Provide the audience so PyJWT can validate it
+        return jwt.decode(
+            token,
+            key,
+            algorithms=["EdDSA"],
+            audience=audience,
+            options=options,
+        )
 
+    if verify_aud:
+        # User wants audience verification but provided no audience value
+        raise ValueError("verify_aud=True requires a non-empty audience parameter")
+
+    # PyJWT >= 2.10 raises InvalidAudienceError when audience=None and
+    # the token has an 'aud' claim.  To bypass, we decode without
+    # audience verification by setting verify_aud=False in options
+    # and passing a dummy audience value that won't be checked.
+    options["verify_aud"] = False
     return jwt.decode(
         token,
         key,
         algorithms=["EdDSA"],
-        audience=audience or None,
+        audience="",
         options=options,
     )
 
