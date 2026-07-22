@@ -312,6 +312,191 @@ export default function ApiPage() {
         The private key is only returned once at creation time. Store it securely.
       </div>
 
+      <h2>SD-JWT — Selective Disclosure JWTs</h2>
+
+      <h3>Create SD-JWT</h3>
+
+      <pre><code>POST /api/v1/token/sd-jwt</code></pre>
+
+      <p>Request body:</p>
+
+      <pre><code>{
+  "claims": {
+    "sub": "user_42",
+    "email": "user@example.com",
+    "role": "admin"
+  },
+  "issuer": "VeilPass"
+}</code></pre>
+
+      <p>Response:</p>
+
+      <pre><code>{
+  "sd_jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6InNkK2p3dCJ9...",
+  "disclosures": ["salt1:email_value", "salt2:role_value"]
+}</code></pre>
+
+      <h3>Present SD-JWT</h3>
+
+      <pre><code>POST /api/v1/token/sd-jwt/present</code></pre>
+
+      <p>Response includes only the selected claim disclosures.</p>
+
+      <h3>Verify SD-JWT</h3>
+
+      <pre><code>POST /api/v1/verify/sd-jwt</code></pre>
+
+      <h2>ZKP — Zero-Knowledge Proofs</h2>
+
+      <h3>Generate Keypair</h3>
+
+      <pre><code>POST /api/v1/zkp/keypair</code></pre>
+
+      <p>Request body:</p>
+
+      <pre><code>{
+  "secret": "user-secret"
+}</code></pre>
+
+      <p>Response: <code>{ "public_key": "...", "commitment": "..." }</code></p>
+
+      <h3>Generate Proof</h3>
+
+      <pre><code>POST /api/v1/zkp/proof</code></pre>
+
+      <p>Response: <code>{ "challenge": "...", "response": "...", "nonce": "..." }</code></p>
+
+      <h3>Verify Proof</h3>
+
+      <pre><code>POST /api/v1/zkp/verify</code></pre>
+
+      <p>Response: <code>{ "valid": true/false }</code></p>
+
+      <h2>Ephemeral Credentials</h2>
+
+      <h3>Create Ephemeral Credential</h3>
+
+      <pre><code>POST /api/v1/ephemeral</code></pre>
+
+      <p>Request:</p>
+
+      <pre><code>{
+  "content": "sensitive-data",
+  "ttl": 600,
+  "one_time": true
+}</code></pre>
+
+      <p>Response: <code>{ "token": "ep_ot_...", "expires_at": "..." }</code></p>
+
+      <h3>Verify Ephemeral Credential</h3>
+
+      <pre><code>POST /api/v1/ephemeral/verify</code></pre>
+
+      <h2>Encrypted Payloads</h2>
+
+      <h3>Encrypt</h3>
+
+      <pre><code>POST /api/v1/encrypted</code></pre>
+
+      <p>Request:</p>
+
+      <pre><code>{
+  "content": "sensitive-data",
+  "password": "user-password"
+}</code></pre>
+
+      <p>Response includes ciphertext, nonce, tag, QR payload, and NFC payload.</p>
+
+      <h3>Decrypt</h3>
+
+      <pre><code>POST /api/v1/encrypted/decrypt</code></pre>
+
+      <h2>Trust Registry</h2>
+
+      <h3>Register Issuer</h3>
+
+      <pre><code>POST /api/v1/registry</code></pre>
+
+      <p>Request:</p>
+
+      <pre><code>{
+  "did": "did:veilpass:abc123",
+  "name": "My Org",
+  "public_key": "-----BEGIN PUBLIC KEY-----..."
+}</code></pre>
+
+      <h3>List Issuers</h3>
+
+      <pre><code>GET /api/v1/registry</code></pre>
+
+      <h3>Lookup Issuer</h3>
+
+      <pre><code>GET /api/v1/registry/{did}</code></pre>
+
+      <h3>Verify Issuer</h3>
+
+      <pre><code>POST /api/v1/registry/verify</code></pre>
+
+      <h2>QR Analytics</h2>
+
+      <h3>Get Analytics</h3>
+
+      <pre><code>GET /api/v1/dynamic-qr/{id}/analytics</code></pre>
+
+      <p>Returns scans over time, top agents, top referrers, unique IPs, and privacy mode.</p>
+
+      <h3>Privacy Score</h3>
+
+      <pre><code>GET /api/v1/dynamic-qr/{id}/privacy-score</code></pre>
+
+      <p>Returns a privacy compliance score with GDPR and Kenya DPA compliance indicators.</p>
+
+      <h2>Webhooks</h2>
+
+      <h3>Register Webhook</h3>
+
+      <pre><code>POST /api/v1/webhooks</code></pre>
+
+      <p>Request:</p>
+
+      <pre><code>{
+  "url": "https://example.com/webhook",
+  "events": ["token.issued", "token.verified", "qr.scanned"],
+  "secret": "webhook-signing-secret"
+}</code></pre>
+
+      <h3>List Webhooks</h3>
+
+      <pre><code>GET /api/v1/webhooks</code></pre>
+
+      <h3>Delete Webhook</h3>
+
+      <pre><code>DELETE /api/v1/webhooks/{id}</code></pre>
+
+      <h2>Key Rotation</h2>
+
+      <h3>Rotate Keys</h3>
+
+      <pre><code>POST /api/v1/keys/rotate</code></pre>
+
+      <p>Creates a new active key and retains the old key for verification of previously signed credentials.</p>
+
+      <h3>List Keys</h3>
+
+      <pre><code>GET /api/v1/keys</code></pre>
+
+      <h2>Audit Logging</h2>
+
+      <h3>Get Audit Log</h3>
+
+      <pre><code>GET /api/v1/audit</code></pre>
+
+      <h3>Export Audit Log</h3>
+
+      <pre><code>GET /api/v1/audit/export</code></pre>
+
+      <p>Returns audit log as CSV for external analysis.</p>
+
       <h2>Error Handling</h2>
 
       <p>The API uses conventional HTTP status codes:</p>

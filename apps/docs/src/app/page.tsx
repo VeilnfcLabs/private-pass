@@ -12,7 +12,8 @@ export default function HomePage() {
         </h1>
         <p className="text-xl text-[var(--vp-text-secondary)] max-w-2xl mx-auto mb-8">
           Passwordless authentication and secure access management.
-          Generate QR codes, NFC payloads, time-limited tokens, and signed links.
+           Generate QR codes, NFC payloads, SD-JWTs, ZK proofs, ephemeral credentials,
+           encrypted payloads, and signed links.
         </p>
         <div className="flex gap-4 justify-center">
           <Link
@@ -60,6 +61,12 @@ export default function HomePage() {
           {[
             { title: 'CLI Reference', href: '/cli', desc: 'Complete CLI command reference' },
             { title: 'REST API', href: '/api', desc: 'API endpoints and usage' },
+            { title: 'SD-JWT', href: '/sd-jwt', desc: 'Selective disclosure JWTs' },
+            { title: 'ZK Proofs', href: '/zkp', desc: 'Zero-knowledge proof auth' },
+            { title: 'Ephemeral', href: '/ephemeral', desc: 'Self-destructing credentials' },
+            { title: 'Encrypted', href: '/encrypted', desc: 'Hybrid NFC+QR encryption' },
+            { title: 'Trust Registry', href: '/registry', desc: 'Decentralized issuer registry' },
+            { title: 'Analytics', href: '/analytics', desc: 'Privacy-first QR analytics' },
             { title: 'SDK', href: '/sdk', desc: 'Language SDK documentation' },
             { title: 'Security', href: '/security', desc: 'Security model and best practices' },
             { title: 'Architecture', href: '/architecture', desc: 'System architecture overview' },

@@ -28,3 +28,9 @@ src/bindings.ts
 
 # Temp files
 *.tmp
+
+# Python
+__pycache__/
+*.pyc
+__pycache__/
+*.pyc
