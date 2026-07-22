@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { QrCode, Link as LinkIcon, Key, Shield, Nfc } from "lucide-react";
+import { QrCode, Link as LinkIcon, Key, Shield, Nfc, Lock, Brain, Flame, BookMarked, BarChart3 } from "lucide-react";
 import NextLink from "next/link";
 
 const stats = [
@@ -44,6 +44,34 @@ const quickActions = [
     icon: <Key size={24} />,
     color: "from-amber-500 to-amber-600",
   },
+  {
+    title: "Selective Disclosure",
+    description: "SD-JWT with salted claim digests",
+    href: "/sd-jwt",
+    icon: <Lock size={24} />,
+    color: "from-violet-500 to-violet-600",
+  },
+  {
+    title: "ZKP Authentication",
+    description: "Zero-knowledge proof based auth",
+    href: "/zkp",
+    icon: <Brain size={24} />,
+    color: "from-purple-500 to-purple-600",
+  },
+  {
+    title: "Ephemeral Credentials",
+    description: "Self-destructing short-lived tokens",
+    href: "/ephemeral",
+    icon: <Flame size={24} />,
+    color: "from-orange-500 to-orange-600",
+  },
+  {
+    title: "Trust Registry",
+    description: "DID-based issuer verification",
+    href: "/registry",
+    icon: <BookMarked size={24} />,
+    color: "from-cyan-500 to-cyan-600",
+  },
 ];
 
 export default function DashboardPage() {
@@ -81,7 +109,7 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <div>
               <h2 className="text-lg font-semibold text-text-primary mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {quickActions.map((action, index) => (
                   <NextLink key={index} href={action.href}>
                     <Card hover className="p-5 h-full cursor-pointer">

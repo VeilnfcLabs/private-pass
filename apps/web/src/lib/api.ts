@@ -183,4 +183,99 @@ export const api = {
       timeout,
     });
   },
+
+  // SD-JWT
+  async sdJwtGenerate(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/token/sd-jwt", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async sdJwtPresent(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/token/sd-jwt/present", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async sdJwtVerify(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/verify/sd-jwt", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+
+  // ZKP
+  async zkpKeypair(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/zkp/keypair", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async zkpProof(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/zkp/proof", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async zkpVerify(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/zkp/verify", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+
+  // Ephemeral
+  async ephemeralCreate(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/ephemeral", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async ephemeralVerify(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/ephemeral/verify", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+
+  // Trust Registry
+  async registryRegister(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/registry", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async registryList(): Promise<Record<string, unknown>> {
+    return request("/registry");
+  },
+  async registryLookup(did: string): Promise<Record<string, unknown>> {
+    return request(`/registry/${did}`);
+  },
+  async registryVerify(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/registry/verify", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+
+  // Encrypted
+  async encrypt(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/encrypted", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async decrypt(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/encrypted/decrypt", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+
+  // Revocation
+  async revoke(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/revoke", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async revokeStatus(id: string): Promise<Record<string, unknown>> {
+    return request(`/revoke/status/${id}`);
+  },
+
+  // Dynamic QR
+  async dynamicQrCreate(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/dynamic-qr", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async dynamicQrAnalytics(id: string): Promise<Record<string, unknown>> {
+    return request(`/dynamic-qr/${id}/analytics`);
+  },
+
+  // Webhooks
+  async webhookRegister(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/webhooks", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async webhookList(): Promise<Record<string, unknown>> {
+    return request("/webhooks");
+  },
+  async webhookDelete(id: string): Promise<Record<string, unknown>> {
+    return request(`/webhooks/${id}`, { method: "DELETE" });
+  },
+
+  // Keys
+  async keyRotate(data: Record<string, unknown>, timeout?: number): Promise<Record<string, unknown>> {
+    return request("/keys/rotate", { method: "POST", body: JSON.stringify(data), timeout });
+  },
+  async keyList(): Promise<Record<string, unknown>> {
+    return request("/keys");
+  },
+
+  // Audit
+  async auditLog(): Promise<Record<string, unknown>> {
+    return request("/audit");
+  },
+  async auditExport(): Promise<Record<string, unknown>> {
+    return request("/audit/export");
+  },
 };

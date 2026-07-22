@@ -31,6 +31,17 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    title: 'Features',
+    items: [
+      { title: 'SD-JWT', href: '/sd-jwt' },
+      { title: 'ZK Proofs', href: '/zkp' },
+      { title: 'Ephemeral Credentials', href: '/ephemeral' },
+      { title: 'Encrypted Payloads', href: '/encrypted' },
+      { title: 'Trust Registry', href: '/registry' },
+      { title: 'Privacy Analytics', href: '/analytics' },
+    ],
+  },
+  {
     title: 'Topics',
     items: [
       { title: 'Security', href: '/security' },

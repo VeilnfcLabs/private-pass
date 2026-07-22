@@ -227,6 +227,110 @@ veil key import ./my-key.pem --key-id my-custom-key
 # Show key details
 veil key info</code></pre>
 
+      <h2>veil zk-proof — Zero-Knowledge Proofs</h2>
+
+      <p>Generate and verify Schnorr-based zero-knowledge proofs.</p>
+
+      <pre><code>veil zk-proof keypair [options]
+veil zk-proof prove [options]
+veil zk-proof verify [options]
+
+Options:
+  --secret &lt;secret&gt;        Secret value for key generation
+  --public-key &lt;key&gt;       Public key for proof generation/verification
+  --challenge &lt;challenge&gt;  Challenge from proof
+  --response &lt;response&gt;    Response from proof</code></pre>
+
+      <p>Examples:</p>
+
+      <pre><code># Generate a keypair
+veil zk-proof keypair --secret "my-secret-value"
+
+# Generate a proof
+veil zk-proof prove --secret "my-secret-value" --public-key "pub-key-here"
+
+# Verify a proof
+veil zk-proof verify --challenge "abc" --response "def" --public-key "pub-key-here"</code></pre>
+
+      <h2>veil ephemeral — Ephemeral Credentials</h2>
+
+      <p>Create and verify self-destructing, short-lived credentials.</p>
+
+      <pre><code>veil ephemeral create [options]
+veil ephemeral verify &lt;token&gt;
+
+Create options:
+  --content &lt;text&gt;         Credential content (default: "ephemeral-access")
+  --ttl &lt;duration&gt;         Time-to-live (e.g. 300, 5m, 1h, 24h) (default: "10m")
+  --one-time                Auto-destruct after first use (default: true)</code></pre>
+
+      <p>Examples:</p>
+
+      <pre><code># Create a one-time 10-minute credential
+veil ephemeral create --content "door-access-7" --ttl 10m --one-time
+
+# Create a 24-hour credential
+veil ephemeral create --content "event-pass" --ttl 24h
+
+# Verify a credential
+veil ephemeral verify ep_ot_ZXhhbXBsZQ==.1700003600.sig123</code></pre>
+
+      <h2>veil encrypt — Hybrid NFC+QR Encryption</h2>
+
+      <p>Encrypt content for both QR and NFC output using AES-256-GCM.</p>
+
+      <pre><code>veil encrypt create [options]
+veil encrypt decrypt [options]
+
+Create options:
+  --content &lt;text&gt;         Content to encrypt
+  --password &lt;password&gt;    Encryption password
+
+Decrypt options:
+  --ciphertext &lt;hex&gt;       Ciphertext in hex
+  --password &lt;password&gt;    Decryption password
+  --nonce &lt;hex&gt;            Nonce in hex
+  --tag &lt;hex&gt;              Auth tag in hex</code></pre>
+
+      <p>Examples:</p>
+
+      <pre><code># Encrypt content
+veil encrypt create --content "my-secret-data" --password "strong-password"
+
+# Decrypt content
+veil encrypt decrypt --ciphertext "abc123..." --password "strong-password" --nonce "def456..." --tag "789012..."</code></pre>
+
+      <h2>veil registry — Trust Registry</h2>
+
+      <p>Manage decentralized trust registry for credential issuers.</p>
+
+      <pre><code>veil registry register [options]
+veil registry list
+veil registry lookup &lt;did&gt;
+veil registry verify [options]
+
+Register options:
+  --did &lt;did&gt;              Decentralized identifier
+  --name &lt;name&gt;            Issuer name
+  --key &lt;publicKey&gt;        Public key
+
+Verify options:
+  --issuer-did &lt;did&gt;       Issuer DID to verify</code></pre>
+
+      <p>Examples:</p>
+
+      <pre><code># Register an issuer
+veil registry register --did "did:veilpass:abc123" --name "My Org" --key "pub-key-pem"
+
+# List all issuers
+veil registry list
+
+# Look up an issuer
+veil registry lookup "did:veilpass:abc123"
+
+# Verify a credential issuer
+veil registry verify --issuer-did "did:veilpass:abc123"</code></pre>
+
       <h2>veil config — Configuration Management</h2>
 
       <p>Manage CLI configuration settings.</p>

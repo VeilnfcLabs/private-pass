@@ -15,6 +15,12 @@ import {
   BookOpen,
   Settings,
   X,
+  Lock,
+  Brain,
+  Flame,
+  BookMarked,
+  Eye,
+  BarChart3,
 } from "lucide-react";
 
 interface NavItem {
@@ -30,6 +36,12 @@ const navItems: NavItem[] = [
   { href: "/links", label: "Signed Links", icon: <Link size={18} /> },
   { href: "/signed-urls", label: "Signed URLs", icon: <Globe size={18} /> },
   { href: "/tokens", label: "Temporary Tokens", icon: <Key size={18} /> },
+  { href: "/sd-jwt", label: "SD-JWT", icon: <Lock size={18} /> },
+  { href: "/ephemeral", label: "Ephemeral", icon: <Flame size={18} /> },
+  { href: "/encrypted", label: "Encrypted", icon: <Lock size={18} /> },
+  { href: "/zkp", label: "ZKP Auth", icon: <Brain size={18} /> },
+  { href: "/registry", label: "Trust Registry", icon: <BookMarked size={18} /> },
+  { href: "/analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
   { href: "/verify", label: "Verification", icon: <Shield size={18} /> },
   { href: "/api-keys", label: "API Keys", icon: <Key size={18} /> },
   { href: "/settings", label: "Settings", icon: <Settings size={18} /> },
