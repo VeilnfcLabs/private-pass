@@ -14,5 +14,5 @@ asyncpg==0.30.0
 psycopg2-binary==2.9.10
 alembic==1.14.0
 python-dotenv==1.0.1
-structlog==24.4.0
+structlog==26.1.0
 orjson==3.10.12
